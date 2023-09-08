@@ -1,0 +1,81 @@
+﻿@page "/MyOffers/{id?}"
+@attribute [Authorize(Roles = "AppCostumer")]
+@inject IOfferService _offerService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Identity;
+
+<PageTitle>MyOffers</PageTitle>
+
+<div class="container">
+    <h1>My Offers </h1>
+    @if (offers == null)
+    {
+        <p class="text-center">
+            Loading ...
+        </p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Offer Number</th>
+                    <th>Offer Date</th>
+                    <th>Offer details</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var offer in offers)
+                {
+                    <tr>
+                        <td>@offer.Number</td>
+                        <td>@offer.Date.ToString("g")</td>
+                        <td>
+                            <ul>
+                                @foreach (var od in offer.offerDetails)
+                                {
+                                    <li>@od.Product?.Name | @od.Qte | @od.Price | @Math.Round(od.Qte*od.Price,3)</li>
+                                }
+                            </ul>
+                        </td>
+                        <td>
+                            @Math.Round(offer.offerDetails.Sum(od=>od.Qte*od.Price),3)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    }
+</div>
+
+
+
+@code {
+    [Parameter]
+
+    public string id { get; set; }
+
+    public List<Offer> offers;
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userIdClaim = authState?.User?.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
+
+            if (userIdClaim != null)
+            {
+                offers = await _offerService.GetByUserId(userIdClaim.Value);
+                StateHasChanged();
+            }
+
+        }
+
+    }
+}

@@ -1,0 +1,69 @@
+﻿@page "/"
+@inject IProductService _context
+@inject IOfferService _offer
+@inject NavigationManager _navigation;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Identity;
+
+<PageTitle>Index</PageTitle>
+
+@*<h1>Hello!</h1>
+
+Welcome to your Offers management app.
+
+Your test credentials are :
+
+<p>
+    costumer@happycenterhal.com / Suqo858888 <br />
+    admin@happycenterhal.com / Yuva652916
+</p>
+*@
+<AuthorizeView Roles="AppAdmin">
+    <Authorized>
+        You are an app admin
+    </Authorized>
+</AuthorizeView>
+<AuthorizeView Roles="AppCostumer">
+    <Authorized>
+        You are an app costumer
+    </Authorized>
+</AuthorizeView>
+<AuthorizeView>
+    <NotAuthorized>
+        <p>
+            You are not authrozied to see the content, plz login
+        </p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if(!authState.User.Identity.IsAuthenticated)
+            {
+                _navigation.NavigateTo("MicrosoftIdentity/Account/SignIn",true);
+            }
+            else
+            {
+                var userRole = authState?.User?.Claims.Where(c => c.Type == ClaimTypes.Role).FirstOrDefault();
+                if (userRole != null)
+                {
+                    if (userRole.Value.Contains("AppCostumer"))
+                    {
+                        _navigation.NavigateTo("MyOffers");
+                    }
+                    if (userRole.Value.Contains("AppAdmin"))
+                    {
+                        _navigation.NavigateTo("ManageOffers");
+                    }
+                }
+            }
+        }
+
+    }
+}

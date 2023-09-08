@@ -1,0 +1,214 @@
+﻿@page "/ManageProducts"
+@attribute [Authorize(Roles = "AppAdmin")]
+@inject IProductService _productService
+
+<PageTitle>ManageProducts</PageTitle>
+
+<div class="container">
+    <h1>Products List</h1>
+
+    @if (displayForm)
+    {
+        <div class="modal fade show" id="myModal" style="display:block;background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">@action product</h4>
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                        <EditForm Model="product" OnValidSubmit="SubmitProduct">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="form-group">
+                                <label for="productName">Name</label>
+                                <InputText disabled="@(action=="delete")" class="form-control" @bind-Value="product.Name" />
+                            </div>
+                            <div class="form-group">
+                                <label for="productType">Type</label>
+                                <InputText disabled="@(action=="delete")" class="form-control" @bind-Value="product.Type" />
+                            </div>
+                            <div class="form-group">
+                                <label for="productSubtype">Subtype</label>
+                                <InputText disabled="@(action=="delete")" class="form-control" @bind-Value="product.Subtype" />
+                            </div>
+                            <div class="form-group">
+                                @if (submitLoading)
+                                {
+                                    <p class="text-center">
+                                        Submitting the form, plz wait ...
+                                    </p>
+                                }
+                                else
+                                {
+                                    @if (action == "delete")
+                                    {
+                                        <button type="submit" class="btn btn-danger m-1">Delete</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-primary m-1">Submit</button>
+                                    }
+                                }
+
+                            </div>
+
+                        </EditForm>
+                    </div>
+
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">Cancel</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+    @if (products == null)
+    {
+        <p class="text-center">
+            Loading ...
+        </p>
+    }
+    else
+    {
+        <p class="text-center text-success">
+            @SuccessMessage
+        </p>
+        <p class="text-center text-danger">
+            @ErrorMessage
+        </p>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Subtype</th>
+                    <th><button class="btn btn-success" @onclick="() => AddNewProduct()">Add</button></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in products)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+                        <td>@product.Type</td>
+                        <td>@product.Subtype</td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => EditProduct(product)">Edit</button>
+                            <button class="btn btn-danger" @onclick="() => DeleteProduct(product)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    }
+
+</div>
+
+@code {
+    private List<Product> products;
+
+    private Product product;
+
+    private bool displayForm = false;
+    private bool submitLoading = false;
+    private string action = "";
+
+    private string SuccessMessage;
+    private string ErrorMessage;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        products = await _productService.Get();
+    }
+    private async Task ModalCancel()
+    {
+        submitLoading = false;
+        displayForm = false;
+        product = null;
+        action = "";
+    }
+    private async Task AddNewProduct()
+    {
+        submitLoading = false;
+        action = "add";
+        displayForm = true;
+        product = new Product();
+    }
+
+    private async Task SubmitProduct()
+    {
+        SuccessMessage = "";
+        ErrorMessage = "";
+        try
+        {
+            submitLoading = true;
+            string submitId = "";
+            products = null;
+            await Task.Delay(200);
+            switch (action)
+            {
+                case "add":
+                    submitId = await _productService.Add(product);
+                    SuccessMessage = "Product is added";
+                    break;
+                case "edit":
+                    submitId = await _productService.Edit(product.Id,product);
+                    SuccessMessage = "Product is updated";
+
+                    break;
+                case "delete":
+                    submitId = await _productService.Delete(product.Id);
+                    SuccessMessage = "Product is deleted";
+                    break;
+                default:
+                    submitId = "";
+                    break;
+            }
+            if (string.IsNullOrEmpty(submitId))
+            {
+                SuccessMessage = "";
+                ErrorMessage = "Somthing went wrong plz try again ";
+            }
+            displayForm = false;
+            product = null;
+            action = "";
+            await LoadData();
+        }
+        catch
+        {
+            ErrorMessage = "An error has accured plz contact your IT ";
+            SuccessMessage = "";
+        }
+
+    }
+
+    private async Task EditProduct(Product p)
+    {
+        submitLoading = false;
+        displayForm = true;
+        product = p;
+        action = "edit";
+
+    }
+
+
+    private void DeleteProduct(Product p)
+    {
+        submitLoading = false;
+        displayForm = true;
+        product = p;
+        action = "delete";
+    }
+}

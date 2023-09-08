@@ -1,0 +1,88 @@
+﻿@page "/ManageOffers"
+@attribute [Authorize(Roles = "AppAdmin")]
+@inject IOfferService _offerService
+@inject IJSRuntime JsRuntime
+
+<PageTitle>ManageOffers</PageTitle>
+
+
+<div class="container">
+    <h1>Manage Offers </h1>
+    @if (offers == null)
+    {
+        <p class="text-center">
+            Loading ...
+        </p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>Costumer</th>
+                    <th>Offer Date</th>
+                    <th>Offer details</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var offer in offers)
+                {
+                    <tr>
+                        <td>@offer.Number</td>
+                        <td>
+                            @offer.User?.Name
+                            <br/>
+                            <small>@offer.User?.Email</small>
+                        </td>
+                        <td>@offer.Date.ToString("g")</td>
+                        <td>
+                            <ul>
+                                @foreach (var od in offer.offerDetails)
+                                {
+                                    <li>@od.Product?.Name | @od.Qte | @od.Price | @Math.Round(od.Qte*od.Price,3)</li>
+                                }
+                            </ul>
+                        </td>
+                        <td>
+                            @Math.Round(offer.offerDetails.Sum(od=>od.Qte*od.Price),3)
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" @onclick="() => Archive(offer)">Archived</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    }
+</div>
+
+@code {
+    public List<Offer> offers;
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            offers = await _offerService.Get(DateTime.Now);
+            StateHasChanged();
+
+        }
+    }
+    private async Task Archive(Offer offer)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "You are about to archive this offer ?");
+        if (confirmed)
+        {
+            offer.IsArchived = true;
+            offer.DateArchive = DateTime.Now;
+            await _offerService.Edit(offer.Id, offer);
+            offers = null;
+            await Task.Delay(200);
+            offers = await _offerService.Get(DateTime.Now);
+        }
+
+    }
+}

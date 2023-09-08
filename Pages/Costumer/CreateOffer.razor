@@ -1,0 +1,343 @@
+﻿@page "/CreateOffer"
+@attribute [Authorize(Roles = "AppCostumer")]
+@inject IOfferService _offerService
+@inject IProductService _productService
+@inject IAppUserService _appUserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Identity;
+@inject NavigationManager _navigation;
+<PageTitle>CreateOffer</PageTitle>
+
+@if (user == null)
+{
+    <p class="text-center"> Loading user informations ...</p>
+}
+else
+{
+    <div class="container">
+        <h1>CreateOffer</h1>
+
+        @if (displayForm)
+        {
+            <div class="modal fade show" id="myModal" style="display:block;background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+
+                        <!-- Modal Header -->
+                        <div class="modal-header">
+                            <h4 class="modal-title">@action Item</h4>
+                        </div>
+
+                        <!-- Modal body -->
+                        <div class="modal-body">
+                            <EditForm Model="offerDetail" OnValidSubmit="SubmitProduct">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary />
+                                <div class="form-group">
+                                    <label for="productName">Product</label>
+                                    @if (products != null)
+                                    {
+                                        <InputSelect class="form-select" @bind-Value="offerDetail.ProductId">
+                                            <option value="">Select a product</option>
+                                            @foreach (Product p in products)
+                                            {
+                                                <option value="@p.Id">@p.Name</option>
+                                            }
+                                        </InputSelect>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-center">Loading ...</p>
+                                    }
+
+                                </div>
+                                <div class="form-group">
+                                    <label for="productType">Qte</label>
+                                    <InputNumber disabled="@(action=="delete")" class="form-control" @bind-Value="offerDetail.Qte" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="productSubtype">Price</label>
+                                    <InputNumber disabled="@(action=="delete")" class="form-control" @bind-Value="offerDetail.Price" />
+                                </div>
+                                <div class="form-group">
+                                    @if (submitLoading)
+                                    {
+                                        <p class="text-center">
+                                            Submitting the form, plz wait ...
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        @if (action == "delete")
+                                        {
+                                            <button type="submit" class="btn btn-danger m-1">Delete</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-primary m-1">Submit</button>
+                                        }
+                                    }
+
+                                </div>
+
+                            </EditForm>
+                        </div>
+
+                        <!-- Modal footer -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">Cancel</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-6">
+                Created by <br />
+                <b>
+                    @user.Name (@user.Email)
+                </b>
+            </div>
+            <div class="col-md-6">
+                Created At <br />
+                <b>
+                    @DateTime.Now.ToString("g")
+                </b>
+            </div>
+            <div class="col-md-12">
+                <p class="text-center text-success">
+                    @SuccessMessage
+                </p>
+                <p class="text-center text-danger">
+                    @ErrorMessage
+                </p>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qte</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th><button class="btn btn-success" @onclick="() => AddNewProduct()">Add</button></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var od in offerDetails)
+                        {
+                            <tr>
+                                <td>@od.Product.Name</td>
+                                <td>@od.Qte</td>
+                                <td>@od.Price</td>
+                                <td>
+                                    @Math.Round(od.Qte*od.Price,3)
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary" @onclick="() => EditProduct(od)">Edit</button>
+                                    <button class="btn btn-danger" @onclick="() => DeleteProduct(od)">Delete</button>
+                                </td>
+                            </tr>
+                        }
+                        <tr>
+                            <td class="text-center" colspan="3">
+                                <b>TOTAL</b>
+                            </td>
+                            <td>
+                                <b>@Math.Round(offerDetails.Sum(od=>od.Qte*od.Price),3)</b>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="text-center" colspan="3">
+                            </td>
+                            <td>
+                                @if (FullsubmitLoading)
+                                {
+                                    <p>
+                                        submiting your offer, plz wait ....
+                                    </p>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-primary" @onclick="() => SubmitOffer()">Submit Offer</button>
+                                }
+                            </td>
+                            <td></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+}
+
+
+@code {
+    private List<Product> products;
+
+    private List<OfferDetail> offerDetails = new List<OfferDetail>();
+
+    private OfferDetail offerDetail;
+
+    private bool displayForm = false;
+    private bool submitLoading = false;
+    private bool FullsubmitLoading = false;
+    private string action = "";
+
+    private string SuccessMessage;
+    private string ErrorMessage;
+
+    private AppUser user;
+    private Offer offer;
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            products = await _productService.Get();
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userIdClaim = authState?.User?.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
+
+            if (userIdClaim != null)
+            {
+                user = await _appUserService.Get(userIdClaim.Value);
+                offer = new Offer
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Date = DateTime.Now,
+                        DateStr = DateTime.Now.ToString("yyyyMMdd"),
+                        offerDetails = offerDetails,
+                        User = user,
+                        UserId = user.Id,
+                        IsArchived = false,
+                        DateArchive = new DateTime()
+                    };
+                StateHasChanged();
+            }
+
+        }
+
+    }
+
+    private async Task ModalCancel()
+    {
+        submitLoading = false;
+        displayForm = false;
+        offerDetail = null;
+        action = "";
+    }
+    private async Task AddNewProduct()
+    {
+        submitLoading = false;
+        action = "add";
+        displayForm = true;
+        offerDetail = new OfferDetail
+            {
+                Id = Guid.NewGuid().ToString(),
+                Product = new Product(),
+
+            };
+    }
+
+    private async Task SubmitProduct()
+    {
+        SuccessMessage = "";
+        ErrorMessage = "";
+        var selectedProduct = products.Where(x => x.Id == offerDetail.ProductId).FirstOrDefault();
+        if (selectedProduct == null)
+        {
+            SuccessMessage = "";
+            ErrorMessage = "error : unkown product";
+        }
+        else
+        {
+            offerDetail.Product = selectedProduct;
+            try
+            {
+                submitLoading = true;
+                await Task.Delay(200);
+                switch (action)
+                {
+                    case "add":
+                        offerDetails.Add(offerDetail);
+                        SuccessMessage = "item is added";
+                        break;
+                    case "edit":
+                        foreach (var ofdt in offerDetails.Where(x => x.Id == offerDetail.Id))
+                        {
+                            ofdt.OfferId = offer.Id;
+                            ofdt.Product = offerDetail.Product;
+                            ofdt.ProductId = offerDetail.Product.Id;
+                            ofdt.Qte = offerDetail.Qte;
+                            ofdt.Price = offerDetail.Price;
+                        }
+                        SuccessMessage = "item is updated";
+                        break;
+                    case "delete":
+                        var item = offerDetails.Where(x => x.Id == offerDetail.Id).FirstOrDefault();
+                        if (item != null)
+                        {
+                            offerDetails.Remove(item);
+                            SuccessMessage = "item is deleted";
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            catch
+            {
+                ErrorMessage = "An error has accured plz contact your IT ";
+                SuccessMessage = "";
+            }
+        }
+        displayForm = false;
+        offerDetail = null;
+        action = "";
+    }
+
+    private async Task EditProduct(OfferDetail od)
+    {
+        submitLoading = false;
+        displayForm = true;
+        offerDetail = od;
+        action = "edit";
+
+    }
+
+    private async Task SubmitOffer()
+    {
+        FullsubmitLoading = true;
+        SuccessMessage = "";
+        ErrorMessage = "";
+        if (offerDetails.Count() == 0)
+        {
+            ErrorMessage = "connot submit an empty offer";
+            FullsubmitLoading = false;
+            return;
+        }
+        try
+        {
+
+            string id = await _offerService.Add(offer);
+            _navigation.NavigateTo("MyOffers/" + id);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Somthing went wrong while submiting offer, plz contact you IT";
+        }
+    }
+
+    private void DeleteProduct(OfferDetail od)
+    {
+        submitLoading = false;
+        displayForm = true;
+        offerDetail = od;
+        action = "delete";
+    }
+}

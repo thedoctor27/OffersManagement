@@ -1,0 +1,72 @@
+﻿@page "/ArchivedOffers"
+@attribute [Authorize(Roles = "AppAdmin")]
+@inject IOfferService _offerService
+
+
+<PageTitle>ArchivedOffers</PageTitle>
+
+
+<div class="container">
+    <h1>Archived Offers </h1>
+    @if (offers == null)
+    {
+        <p class="text-center">
+            Loading ...
+        </p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Costumer</th>
+                    <th>Offer Date</th>
+                    <th>Offer details</th>
+                    <th>Total</th>
+                    <th>date archive</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var offer in offers)
+                {
+                    <tr>
+                        <td>
+                            @offer.User?.Name
+                            <br />
+                            <small>@offer.User?.Email</small>
+                        </td>
+                        <td>@offer.Date.ToString("g")</td>
+                        <td>
+                            <ul>
+                                @foreach (var od in offer.offerDetails)
+                                {
+                                    <li>@od.Product?.Name | @od.Qte | @od.Price | @Math.Round(od.Qte*od.Price,3)</li>
+                                }
+                            </ul>
+                        </td>
+                        <td>
+                            @Math.Round(offer.offerDetails.Sum(od=>od.Qte*od.Price),3)
+                        </td>
+                        <td>
+                            @offer.DateArchive.ToString("g")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    }
+</div>
+
+@code {
+    public List<Offer> offers;
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            offers = await _offerService.GetArchived();
+            StateHasChanged();
+
+        }
+    }
+}
