@@ -8,7 +8,7 @@
 
 <div class="container">
     <h1>Manage Offers </h1>
-    @if (offers == null)
+    @if (offerlines == null)
     {
         <p class="text-center">
             Loading ...
@@ -16,43 +16,57 @@
     }
     else
     {
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label class="form-label">Filter prodcuts</label>
+                @if (products != null)
+                {
+                    <select class="form-control" @onchange="FilterProduct">
+                        <option value="">All products</option>
+                        @foreach (var p in products)
+                        {
+                            <option value="@p.Id">@p.Name</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <p>Loading products filter ... </p>
+                }
+            </div>
+        </div>
+        <hr />
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Number</th>
+
+                    <th>Offer Number</th>
                     <th>Costumer</th>
+                    <th>Product</th>
+                    <th>Qte</th>
+                    <th>Price</th>
                     <th>Offer Date</th>
-                    <th>Offer details</th>
-                    <th>Total</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var offer in offers)
+                @foreach (var offer in offerlines)
                 {
-                    <tr>
-                        <td>@offer.Number</td>
+                    <tr style="@(highligh == offer.LineId ? "background-color:#f46424;" :"")">
+                        <td>@offer.OfferNumber</td>
                         <td>
-                            @offer.User?.Name
-                            <br/>
-                            <small>@offer.User?.Email</small>
+                            @offer.CostumerName
                         </td>
-                        <td>@offer.Date.ToString("g")</td>
+                        <td>@offer.ProductName</td>
+                        <td>@offer.Qte</td>
+                        <td>@offer.Price</td>
+                        <td>@offer.OfferDate.ToString("g")</td>
                         <td>
-                            <ul>
-                                @foreach (var od in offer.offerDetails)
-                                {
-                                    <li>@od.Product?.Name | @od.Qte | @od.Price | @Math.Round(od.Qte*od.Price,3)</li>
-                                }
-                            </ul>
-                        </td>
-                        <td>
-                            @Math.Round(offer.offerDetails.Sum(od=>od.Qte*od.Price),3)
-                        </td>
-                        <td>
-                            <button class="btn btn-danger" @onclick="() => Archive(offer)">Archived</button>
+                            <button class="btn btn-danger" @onclick="() => DeleteOffer(offer.OfferId)">Delete</button>
+
                         </td>
                     </tr>
+
                 }
             </tbody>
         </table>
@@ -61,28 +75,73 @@
 </div>
 
 @code {
-    public List<Offer> offers;
+    public List<OfferLineView> BackUpofferlines;
+    public List<OfferLineView> offerlines;
+    public List<Product> products;
+
+    public int highligh = 0;
+    private void FilterProduct(ChangeEventArgs e)
+    {
+        string value = e.Value.ToString();
+        if (string.IsNullOrEmpty(value))
+        {
+            offerlines = BackUpofferlines;
+        }
+        else
+        {
+            offerlines = BackUpofferlines.Where(l => l.ProductId == value).OrderBy(p => p.Price).ToList();
+            if (offerlines.Count() > 0)
+            {
+                highligh = offerlines[0].LineId;
+            }
+        }
+    }
+
     protected override async void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
-            offers = await _offerService.Get(DateTime.Now);
+            await loadData();
             StateHasChanged();
 
         }
     }
-    private async Task Archive(Offer offer)
+    private async Task loadData()
     {
-        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "You are about to archive this offer ?");
+        var lines = new List<OfferLineView>();
+        int i = 1;
+        var offers = await _offerService.Get(DateTime.Now);
+        foreach (var offer in offers)
+        {
+            foreach (var d in offer.offerDetails)
+            {
+                lines.Add(new OfferLineView
+                    {
+                        LineId = i,
+                        OfferId = offer.Id,
+                        CostumerId = offer.User?.Id,
+                        CostumerName = offer.User?.Name,
+                        OfferDate = offer.Date,
+                        OfferNumber = offer.Number,
+                        Price = d.Price,
+                        ProductId = d.Product?.Id,
+                        ProductName = d.Product?.Name,
+                        Qte = d.Qte
+                    });
+                    i++;
+            }
+        }
+        offerlines = lines.OrderByDescending(o => o.OfferNumber.HasValue ? o.OfferNumber.Value : 0).ToList();
+        BackUpofferlines = offerlines;
+        products = BackUpofferlines.GroupBy(p => new { Id = p.ProductId, Name = p.ProductName }).Select(s => new Product { Id = s.Key.Id, Name = s.Key.Name }).ToList();
+    }
+    private async Task DeleteOffer(string id)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
         if (confirmed)
         {
-            offer.IsArchived = true;
-            offer.DateArchive = DateTime.Now;
-            await _offerService.Edit(offer.Id, offer);
-            offers = null;
-            await Task.Delay(200);
-            offers = await _offerService.Get(DateTime.Now);
+           await _offerService.Delete(id);
+            await loadData();
         }
-
     }
 }

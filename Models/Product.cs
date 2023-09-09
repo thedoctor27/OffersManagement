@@ -11,6 +11,6 @@ namespace OffersManagement.Models
         [Required]
         public string Type { get; set; }
         [Required]
-        public string Subtype { get; set; }
+        public string? Subtype { get; set; }
     }
 }

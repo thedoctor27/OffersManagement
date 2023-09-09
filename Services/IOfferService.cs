@@ -4,6 +4,7 @@ namespace OffersManagement.Services
 {
     public interface IOfferService
     {
+        Task<bool> UserHasOfferToday(string userId, DateTime date);
         Task<string> Add(Offer Offer);
         Task<string> Delete(string id);
         Task<string> Edit(string id, Offer UpdatedOffer);

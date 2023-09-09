@@ -21,6 +21,15 @@ namespace OffersManagement.Services
                 _context.Database.EnsureCreated();
             }
         }
+        public async Task<bool> UserHasOfferToday(string userId,DateTime date)
+        {
+            using (var _context = _dbFactory.CreateDbContext())
+            {
+                string datestr = date.ToString("yyyyMMdd");
+                return (await _context.Offers.Where(x => x.UserId == userId && x.DateStr == datestr).CountAsync())>0;
+            }
+                
+        }
         public async Task<List<Offer>> GetByUserId(string userId)
         {
             using (var _context = _dbFactory.CreateDbContext())
