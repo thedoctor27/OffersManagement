@@ -2,10 +2,10 @@
 @attribute [Authorize(Roles = "AppAdmin")]
 @inject IProductService _productService
 
-<PageTitle>ManageProducts</PageTitle>
+<PageTitle>Ürün Yönetimi</PageTitle>
 
 <div class="container">
-    <h1>Products List</h1>
+    <h1>Ürün Yönetimi</h1>
 
     @if (displayForm)
     {
@@ -15,7 +15,7 @@
 
                     <!-- Modal Header -->
                     <div class="modal-header">
-                        <h4 class="modal-title">@action product</h4>
+                        <h4 class="modal-title">@action Ürün</h4>
                     </div>
 
                     <!-- Modal body -->
@@ -24,33 +24,33 @@
                             <DataAnnotationsValidator />
                             <ValidationSummary />
                             <div class="form-group">
-                                <label for="productName">Name</label>
+                                <label for="productName">Ürün Adı</label>
                                 <InputText disabled="@(action=="delete")" class="form-control" @bind-Value="product.Name" />
                             </div>
                             <div class="form-group">
-                                <label for="productType">Type</label>
+                                <label for="productType">Ürün Tipi</label>
                                 <InputText disabled="@(action=="delete")" class="form-control" @bind-Value="product.Type" />
                             </div>
                             <div class="form-group">
-                                <label for="productSubtype">Subtype</label>
+                                <label for="productSubtype">Ürün Alt Tipi</label>
                                 <InputText disabled="@(action=="delete")" class="form-control" @bind-Value="product.Subtype" />
                             </div>
                             <div class="form-group">
                                 @if (submitLoading)
                                 {
                                     <p class="text-center">
-                                        Submitting the form, plz wait ...
+                                        Form yükleniyor lütfen bekleyin ...
                                     </p>
                                 }
                                 else
                                 {
                                     @if (action == "delete")
                                     {
-                                        <button type="submit" class="btn btn-danger m-1">Delete</button>
+                                        <button type="submit" class="btn btn-danger m-1">Sil</button>
                                     }
                                     else
                                     {
-                                        <button type="submit" class="btn btn-primary m-1">Submit</button>
+                                        <button type="submit" class="btn btn-primary m-1">Ekle</button>
                                     }
                                 }
 
@@ -61,7 +61,7 @@
 
                     <!-- Modal footer -->
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">Cancel</button>
+                        <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">İptal</button>
                     </div>
 
                 </div>
@@ -85,10 +85,10 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Subtype</th>
-                    <th><button class="btn btn-success" @onclick="() => AddNewProduct()">Add</button></th>
+                    <th>Ürün Adı</th>
+                    <th>Ürün Tipi</th>
+                    <th>Ürün Alt Tipi</th>
+                    <th><button class="btn btn-success" @onclick="() => AddNewProduct()">Ekle</button></th>
                 </tr>
             </thead>
             <tbody>
@@ -99,8 +99,8 @@
                         <td>@product.Type</td>
                         <td>@product.Subtype</td>
                         <td>
-                            <button class="btn btn-primary" @onclick="() => EditProduct(product)">Edit</button>
-                            <button class="btn btn-danger" @onclick="() => DeleteProduct(product)">Delete</button>
+                            <button class="btn btn-primary" @onclick="() => EditProduct(product)">Düzenle</button>
+                            <button class="btn btn-danger" @onclick="() => DeleteProduct(product)">Sil</button>
                         </td>
                     </tr>
                 }
@@ -161,16 +161,16 @@
             {
                 case "add":
                     submitId = await _productService.Add(product);
-                    SuccessMessage = "Product is added";
+                    SuccessMessage = "Ürün Eklendi";
                     break;
                 case "edit":
                     submitId = await _productService.Edit(product.Id,product);
-                    SuccessMessage = "Product is updated";
+                    SuccessMessage = "Ürün güncellendi";
 
                     break;
                 case "delete":
                     submitId = await _productService.Delete(product.Id);
-                    SuccessMessage = "Product is deleted";
+                    SuccessMessage = "Ürün Silindi";
                     break;
                 default:
                     submitId = "";
@@ -179,7 +179,7 @@
             if (string.IsNullOrEmpty(submitId))
             {
                 SuccessMessage = "";
-                ErrorMessage = "Somthing went wrong plz try again ";
+                ErrorMessage = "Nir şeyler yanlış gitti lütfen tekrar deneyin.";
             }
             displayForm = false;
             product = null;
@@ -188,7 +188,7 @@
         }
         catch
         {
-            ErrorMessage = "An error has accured plz contact your IT ";
+            ErrorMessage = "Bir error oluştu lütfen IT ile iletişimi geçin. ";
             SuccessMessage = "";
         }
 

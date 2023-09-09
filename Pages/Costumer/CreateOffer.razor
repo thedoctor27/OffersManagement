@@ -8,21 +8,21 @@
 @using System.Security.Claims;
 @using Microsoft.AspNetCore.Identity;
 @inject NavigationManager _navigation;
-<PageTitle>CreateOffer</PageTitle>
+<PageTitle>Teklif Sayfası</PageTitle>
 
 @if (user == null)
 {
-    <p class="text-center"> Loading user informations ...</p>
+    <p class="text-center"> Kullanıcı bilgileri yükleniyor ...</p>
 }
 else
 {
     <div class="container">
-        <h1>CreateOffer</h1>
+        <h1>Teklif Oluştur</h1>
 
         @if (UserHasOfferToday)
         {
             <p class="text-center text-danger">
-                <b>You already have an offer submitted today !! </b>
+                <b>Bügün zaten teklif oluşturdunuz. Eğer teklifiniz hatalı ise lütfen bilgi işleme ulaşın. !!  </b>
             </p>
         }
         else
@@ -35,7 +35,7 @@ else
 
                             <!-- Modal Header -->
                             <div class="modal-header">
-                                <h4 class="modal-title">@action Item</h4>
+                                <h4 class="modal-title">@action Ürün</h4>
                             </div>
 
                             <!-- Modal body -->
@@ -44,11 +44,11 @@ else
                                     <DataAnnotationsValidator />
                                     <ValidationSummary />
                                     <div class="form-group">
-                                        <label for="productName">Product</label>
+                                        <label for="productName">Ürün Adı</label>
                                         @if (products != null)
                                         {
                                             <InputSelect class="form-select" @bind-Value="offerDetail.ProductId">
-                                                <option value="">Select a product</option>
+                                                <option value="">Ürün Seçin</option>
                                                 @foreach (Product p in products)
                                                 {
                                                     <option value="@p.Id">@p.Name</option>
@@ -57,34 +57,34 @@ else
                                         }
                                         else
                                         {
-                                            <p class="text-center">Loading ...</p>
+                                            <p class="text-center">Yükleniyor ...</p>
                                         }
 
                                     </div>
                                     <div class="form-group">
-                                        <label for="productType">Qte</label>
+                                        <label for="productType">Miktar (kg)</label>
                                         <InputNumber disabled="@(action=="delete")" class="form-control" @bind-Value="offerDetail.Qte" />
                                     </div>
                                     <div class="form-group">
-                                        <label for="productSubtype">Price</label>
+                                        <label for="productSubtype">Fiyat (TL / 1kg)</label>
                                         <InputNumber disabled="@(action=="delete")" class="form-control" @bind-Value="offerDetail.Price" />
                                     </div>
                                     <div class="form-group">
                                         @if (submitLoading)
                                         {
                                             <p class="text-center">
-                                                Submitting the form, plz wait ...
+                                                Form yükleniyor lütfen bekleyin ...
                                             </p>
                                         }
                                         else
                                         {
                                             @if (action == "delete")
                                             {
-                                                <button type="submit" class="btn btn-danger m-1">Delete</button>
+                                                <button type="submit" class="btn btn-danger m-1">Sil</button>
                                             }
                                             else
                                             {
-                                                <button type="submit" class="btn btn-primary m-1">Submit</button>
+                                                <button type="submit" class="btn btn-primary m-1">Yükle</button>
                                             }
                                         }
 
@@ -95,7 +95,7 @@ else
 
                             <!-- Modal footer -->
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">Cancel</button>
+                                <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">İptal</button>
                             </div>
 
                         </div>
@@ -105,13 +105,13 @@ else
 
             <div class="row">
                 <div class="col-md-6">
-                    Created by <br />
+                    İsimli kullanıcı tarafından: <br />
                     <b>
                         @user.Name (@user.Email)
                     </b>
                 </div>
                 <div class="col-md-6">
-                    Created At <br />
+                    Tarihinde : <br />
                     <b>
                         @DateTime.Now.ToString("g")
                     </b>
@@ -126,11 +126,11 @@ else
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Product</th>
-                                <th>Qte</th>
-                                <th>Price</th>
-                                <th>Total</th>
-                                <th><button class="btn btn-success" @onclick="() => AddNewProduct()">Add</button></th>
+                                <th>Ürün Adı</th>
+                                <th>Miktar (kg)</th>
+                                <th>Fiyat (TL / kg)</th>
+                                <th>Toplam</th>
+                                <th><button class="btn btn-success" @onclick="() => AddNewProduct()">Ekle</button></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -144,14 +144,14 @@ else
                                         @Math.Round(od.Qte*od.Price,3)
                                     </td>
                                     <td>
-                                        <button class="btn btn-primary" @onclick="() => EditProduct(od)">Edit</button>
-                                        <button class="btn btn-danger" @onclick="() => DeleteProduct(od)">Delete</button>
+                                        <button class="btn btn-primary" @onclick="() => EditProduct(od)">Düzenle</button>
+                                        <button class="btn btn-danger" @onclick="() => DeleteProduct(od)">Sil</button>
                                     </td>
                                 </tr>
                             }
                             <tr>
                                 <td class="text-center" colspan="3">
-                                    <b>TOTAL</b>
+                                    <b>Toplam</b>
                                 </td>
                                 <td>
                                     <b>@Math.Round(offerDetails.Sum(od=>od.Qte*od.Price),3)</b>
@@ -165,12 +165,12 @@ else
                                     @if (FullsubmitLoading)
                                     {
                                         <p>
-                                            submiting your offer, plz wait ....
+                                            Form yükleniyor lütfen bekleyin ....
                                         </p>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-primary" @onclick="() => SubmitOffer()">Submit Offer</button>
+                                        <button class="btn btn-primary" @onclick="() => SubmitOffer()">Teklifi Yükle.</button>
                                     }
                                 </td>
                                 <td></td>

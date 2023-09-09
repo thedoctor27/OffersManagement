@@ -3,15 +3,15 @@
 @inject IOfferService _offerService
 
 
-<PageTitle>ArchivedOffers</PageTitle>
+<PageTitle>Arşivlenmiş Teklifler</PageTitle>
 
 
 <div class="container">
-    <h1>Archived Offers </h1>
+    <h1>Arşivlenmiş Teklifler </h1>
     @if (offers == null)
     {
         <p class="text-center">
-            Loading ...
+            Yükleniyor ...
         </p>
     }
     else
@@ -19,11 +19,11 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Costumer</th>
-                    <th>Offer Date</th>
-                    <th>Offer details</th>
-                    <th>Total</th>
-                    <th>date archive</th>
+                    <th>Müşteri Adı</th>
+                    <th>Teklif Tarihi</th>
+                    <th>Teklif Detayları</th>
+                    <th>Toplam</th>
+                    <th>Arşivlenme Tarihi</th>
                 </tr>
             </thead>
             <tbody>

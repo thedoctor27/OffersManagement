@@ -3,26 +3,26 @@
 @inject IOfferService _offerService
 @inject IJSRuntime JsRuntime
 
-<PageTitle>ManageOffers</PageTitle>
+<PageTitle>Teklif Yönetimi</PageTitle>
 
 
 <div class="container">
-    <h1>Manage Offers </h1>
+    <h1>Teklif Yönetimi </h1>
     @if (offerlines == null)
     {
         <p class="text-center">
-            Loading ...
+            Yükleniyor ...
         </p>
     }
     else
     {
         <div class="row">
             <div class="form-group col-md-6">
-                <label class="form-label">Filter prodcuts</label>
+                <label class="form-label">Ürün Filtresi</label>
                 @if (products != null)
                 {
                     <select class="form-control" @onchange="FilterProduct">
-                        <option value="">All products</option>
+                        <option value="">Tüm Ürünler</option>
                         @foreach (var p in products)
                         {
                             <option value="@p.Id">@p.Name</option>
@@ -31,7 +31,7 @@
                 }
                 else
                 {
-                    <p>Loading products filter ... </p>
+                    <p>Ürün filterelemesi yapılıyor ... </p>
                 }
             </div>
         </div>
@@ -40,12 +40,12 @@
             <thead>
                 <tr>
 
-                    <th>Offer Number</th>
-                    <th>Costumer</th>
-                    <th>Product</th>
-                    <th>Qte</th>
-                    <th>Price</th>
-                    <th>Offer Date</th>
+                    <th>Teklif No</th>
+                    <th>Müşteri</th>
+                    <th>Ürün</th>
+                    <th>Miktar(kg)</th>
+                    <th>Fiyat(TL / 1kg)</th>
+                    <th>Teklif Tarihi</th>
                     <th></th>
                 </tr>
             </thead>
@@ -62,7 +62,7 @@
                         <td>@offer.Price</td>
                         <td>@offer.OfferDate.ToString("g")</td>
                         <td>
-                            <button class="btn btn-danger" @onclick="() => DeleteOffer(offer.OfferId)">Delete</button>
+                            <button class="btn btn-danger" @onclick="() => DeleteOffer(offer.OfferId)">Sil</button>
 
                         </td>
                     </tr>
