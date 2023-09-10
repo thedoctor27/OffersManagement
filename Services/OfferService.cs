@@ -139,5 +139,18 @@ namespace OffersManagement.Services
                 return offers;
             }
         }
+        public async Task StartArchiving()
+        {
+            using (var _context = _dbFactory.CreateDbContext())
+            {
+                var offers = await _context.Offers.Where(d=> !d.IsArchived).ToListAsync();
+                foreach (var offer in offers)
+                {
+                    offer.IsArchived = true;
+                    offer.DateArchive = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
     }
 }

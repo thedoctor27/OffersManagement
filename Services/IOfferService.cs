@@ -12,5 +12,6 @@ namespace OffersManagement.Services
         Task<List<Offer>> GetByUserId(string userId);
         Task<Offer> Get(string id);
         Task<List<Offer>> GetArchived();
+        Task StartArchiving();
     }
 }
