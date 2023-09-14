@@ -26,7 +26,7 @@ namespace OffersManagement.Services
             using (var _context = _dbFactory.CreateDbContext())
             {
                 string datestr = date.ToString("yyyyMMdd");
-                return (await _context.Offers.Where(x => x.UserId == userId && x.DateStr == datestr).CountAsync())>0;
+                return (await _context.Offers.Where(x => x.UserId == userId && x.DateStr == datestr && !x.IsArchived).CountAsync())>0;
             }
                 
         }
