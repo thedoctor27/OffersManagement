@@ -1,9 +1,9 @@
 ﻿<AuthorizeView>
     <Authorized>
-        Hello, @context.User.Identity?.Name!
-        <a href="MicrosoftIdentity/Account/SignOut">Log out</a>
+        Hoşgeldin , @context.User.Identity?.Name!
+        <a href="MicrosoftIdentity/Account/SignOut">Çıkış Yap</a>
     </Authorized>
     <NotAuthorized>
-        <a href="MicrosoftIdentity/Account/SignIn">Log in</a>
+        <a href="MicrosoftIdentity/Account/SignIn">Giriş Yap</a>
     </NotAuthorized>
 </AuthorizeView>
