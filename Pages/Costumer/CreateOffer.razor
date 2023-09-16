@@ -113,7 +113,7 @@ else
                 <div class="col-md-6">
                     Tarihinde : <br />
                     <b>
-                        @DateTime.Now.ToString("g")
+                        @TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Turkey Standard Time")).ToString("g")
                     </b>
                 </div>
                 <div class="col-md-12">
@@ -222,8 +222,8 @@ else
                 offer = new Offer
                     {
                         Id = Guid.NewGuid().ToString(),
-                        Date = DateTime.Now,
-                        DateStr = DateTime.Now.ToString("yyyyMMdd"),
+                        Date = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Turkey Standard Time")),
+                        DateStr = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Turkey Standard Time")).ToString("yyyyMMdd"),
                         offerDetails = offerDetails,
                         User = user,
                         UserId = user.Id,

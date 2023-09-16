@@ -147,7 +147,7 @@ namespace OffersManagement.Services
                 foreach (var offer in offers)
                 {
                     offer.IsArchived = true;
-                    offer.DateArchive = DateTime.Now;
+                    offer.DateArchive = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Turkey Standard Time"));
                     await _context.SaveChangesAsync();
                 }
             }

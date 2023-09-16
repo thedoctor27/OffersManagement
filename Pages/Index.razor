@@ -9,7 +9,7 @@
 
 <PageTitle>Index</PageTitle>
 
-@DateTime.Now.ToString("R");
+@TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Turkey Standard Time"));
 @*<h1>Hello!</h1>
 
 Welcome to your Offers management app.
